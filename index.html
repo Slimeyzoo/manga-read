@@ -1,264 +1,91 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Modern Manga Reader</title>
-  <meta name="description" content="Schöner statischer Manga-Reader. Lädt eine externe manga.json mit Cover, Kapiteln und Seiten." />
-  <style>
-    /* Modern, clean UI */
-    :root{--bg:#0b0f14;--card:#0f1720;--muted:#9aa4b2;--accent:#2aa3ff;--glass:rgba(255,255,255,0.03)}
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial; background:linear-gradient(180deg,#041017 0,#071826 100%);color:#e6eef6}
-    header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.03)}
-    header h1{margin:0;font-size:18px}
-    .wrap{display:grid;grid-template-columns:320px 1fr;gap:18px;height:calc(100vh - 64px);padding:18px}
-
-    /* Sidebar */
-    .sidebar{background:var(--card);border-radius:12px;padding:14px;overflow:auto}
-    .search{display:flex;gap:8px;margin-bottom:12px}
-    .search input{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
-    .manga-grid{display:grid;grid-template-columns:1fr;gap:8px}
-    .manga-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;cursor:pointer}
-    .manga-item img{width:58px;height:82px;object-fit:cover;border-radius:6px}
-    .manga-meta{display:flex;flex-direction:column}
-    .manga-title{font-weight:600}
-    .manga-sub{font-size:13px;color:var(--muted)}
-
-    /* Reader area */
-    .reader{display:flex;flex-direction:column;background:var(--card);border-radius:12px;padding:12px}
-    .reader-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .chapter-list{display:flex;gap:8px;overflow:auto;padding:8px 0}
-    .chapter-btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);cursor:pointer;background:transparent}
-    .chapter-btn.active{background:linear-gradient(90deg,var(--accent),#6bd0ff);color:#07222c}
-
-    .viewer{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
-    .controls-bottom{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px}
-    .btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:10px;cursor:pointer}
-
-    .page-wrap{max-width:100%;max-height:100%;display:flex;align-items:center;justify-content:center}
-    img.page{max-width:100%;max-height:84vh;border-radius:8px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
-
-    .thumbs{display:flex;gap:8px;overflow:auto;padding:10px;background:var(--glass);border-radius:8px;margin-top:10px}
-    .thumbs img{height:84px;cursor:pointer;border-radius:6px}
-
-    .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:20px;pointer-events:none}
-    .nav-area{pointer-events:auto}
-    .nav-btn{background:linear-gradient(90deg,rgba(0,0,0,0.4),rgba(0,0,0,0.2));border:0;color:white;padding:12px;border-radius:10px;cursor:pointer}
-
-    /* responsive */
-    @media(max-width:1000px){.wrap{grid-template-columns:1fr;grid-auto-rows:1fr}}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Manga Liste mit Cover</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    background: #eee;
+    margin-bottom: 1rem;
+    padding: 0.8rem;
+    border-radius: 6px;
+    transition: background 0.3s;
+  }
+  li:hover {
+    background: #ddd;
+  }
+  img.cover {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+  a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+</style>
 </head>
 <body>
-  <header>
-    <div style="display:flex;gap:12px;align-items:center">
-      <h1>Modern Manga Reader</h1>
-      <div style="color:var(--muted);font-size:13px">Statisch · liest `manga.json`</div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <button id="toggleAuto" class="btn">Auto-Scroll: Aus</button>
-      <button id="fullscreenBtn" class="btn">Vollbild</button>
-    </div>
-  </header>
+  <h1>Meine Manga Sammlung</h1>
+  <ul id="manga-list">
+    <li>Lade Manga...</li>
+  </ul>
 
-  <div class="wrap">
-    <aside class="sidebar">
-      <div class="search">
-        <input id="searchInput" placeholder="Suche Manga..." />
-        <button id="clearSearch" class="btn">✕</button>
-      </div>
-      <div class="manga-grid" id="mangaList"></div>
-    </aside>
+<script>
+// JSON-Datei mit Manga-Daten laden und Liste anzeigen
+fetch('manga.json')
+  .then(res => {
+    if (!res.ok) throw new Error('Konnte manga.json nicht laden');
+    return res.json();
+  })
+  .then(data => {
+    const list = document.getElementById('manga-list');
+    list.innerHTML = ''; // leeren
 
-    <main class="reader">
-      <div class="reader-header">
-        <div>
-          <div id="currentMangaTitle" style="font-weight:700">—</div>
-          <div id="currentChapterTitle" class="manga-sub">Wähle ein Kapitel</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div id="pageCounter" class="manga-sub">Seite 0 / 0</div>
-        </div>
-      </div>
+    data.manga.forEach(manga => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      const img = document.createElement('img');
 
-      <div class="chapter-list" id="chapterList"></div>
+      a.href = `kapitel.html?manga=${encodeURIComponent(manga.title)}`; // Link zum Kapitel-Reader setzen
+      a.textContent = manga.title;
 
-      <div class="viewer" id="viewer">
-        <div class="overlay">
-          <div class="nav-area"><button id="prevPageNav" class="nav-btn nav-left">◀</button></div>
-          <div class="nav-area"><button id="nextPageNav" class="nav-btn nav-right">▶</button></div>
-        </div>
+      img.src = manga.cover || 'placeholder.png'; // Fallback-Bild, falls kein Cover angegeben
+      img.alt = manga.title + ' Cover';
+      img.className = 'cover';
 
-        <div class="page-wrap">
-          <img id="pageImg" class="page" src="" alt="Seite">
-        </div>
-      </div>
-
-      <div class="controls-bottom">
-        <button id="firstPage" class="btn">Erste</button>
-        <button id="prevPage" class="btn">Zurück</button>
-        <button id="nextPage" class="btn">Weiter</button>
-        <button id="lastPage" class="btn">Letzte</button>
-        <div style="flex:1"></div>
-        <label class="manga-sub">Auto-Scroll Geschwindigkeit:</label>
-        <input id="autoSpeed" type="range" min="0.5" max="4" step="0.1" value="1" />
-      </div>
-
-      <div class="thumbs" id="thumbs"></div>
-    </main>
-  </div>
-
-  <script>
-    // Globals
-    let mangaJSON = null;
-    let currentManga = null; // object
-    let currentChapter = null; // object
-    let currentPage = 0;
-    let autoScroll = false;
-    let autoTimer = null;
-
-    // DOM
-    const mangaListEl = document.getElementById('mangaList');
-    const chapterListEl = document.getElementById('chapterList');
-    const pageImg = document.getElementById('pageImg');
-    const pageCounter = document.getElementById('pageCounter');
-    const currentMangaTitle = document.getElementById('currentMangaTitle');
-    const currentChapterTitle = document.getElementById('currentChapterTitle');
-    const thumbs = document.getElementById('thumbs');
-
-    const nextPageBtn = document.getElementById('nextPage');
-    const prevPageBtn = document.getElementById('prevPage');
-    const firstPageBtn = document.getElementById('firstPage');
-    const lastPageBtn = document.getElementById('lastPage');
-    const nextPageNav = document.getElementById('nextPageNav');
-    const prevPageNav = document.getElementById('prevPageNav');
-
-    const toggleAutoBtn = document.getElementById('toggleAuto');
-    const autoSpeed = document.getElementById('autoSpeed');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-
-    // load manga.json
-    async function init(){
-      try{
-        const r = await fetch('manga.json');
-        const raw = await r.json();
-        // compatible: accept { "manga": [...] } or the array directly
-        mangaJSON = Array.isArray(raw) ? raw : (raw.manga || []);
-        renderMangaList(mangaJSON);
-      }catch(e){
-        mangaListEl.innerHTML = '<div style="color:#ff8a8a">Fehler beim Laden von manga.json — prüfe Pfad/Format (Konsole für Details)</div>';
-        console.error(e);
-      }
-    }
-
-    function renderMangaList(list){
-      mangaListEl.innerHTML = '';
-      list.forEach((m,idx)=>{
-        const el = document.createElement('div'); el.className='manga-item'; el.tabIndex=0;
-        el.innerHTML = `<img src="${m.cover||''}" alt="cover"><div class="manga-meta"><div class="manga-title">${m.title}</div><div class="manga-sub">${(m.chapters||[]).length} Kapitel</div></div>`;
-        el.onclick = () => selectManga(idx, el);
-        mangaListEl.appendChild(el);
-      });
-    }
-
-    function selectManga(idx, el){
-      currentManga = mangaJSON[idx];
-      currentMangaTitle.textContent = currentManga.title;
-      currentChapterTitle.textContent = 'Wähle ein Kapitel';
-      currentPage = 0; currentChapter = null; pageImg.src=''; pageCounter.textContent='Seite 0 / 0';
-      // highlight
-      Array.from(mangaListEl.children).forEach(x=>x.classList.remove('active'));
-      el.classList.add('active');
-      renderChapterButtons();
-    }
-
-    function renderChapterButtons(){
-      chapterListEl.innerHTML='';
-      (currentManga.chapters||[]).forEach((ch, i)=>{
-        const b = document.createElement('button');
-        b.className='chapter-btn'; b.textContent = ch.title; b.onclick = ()=> selectChapter(i,b);
-        chapterListEl.appendChild(b);
-      });
-    }
-
-    function selectChapter(idx, btn){
-      currentChapter = currentManga.chapters[idx];
-      currentPage = 0;
-      currentChapterTitle.textContent = currentChapter.title;
-      Array.from(chapterListEl.children).forEach(x=>x.classList.remove('active'));
-      btn.classList.add('active');
-      renderThumbs(); showPage(0);
-    }
-
-    function renderThumbs(){
-      thumbs.innerHTML='';
-      (currentChapter.pages||[]).forEach((p, i)=>{
-        const t = document.createElement('img'); t.src=p; t.title='Seite '+(i+1); t.onclick = ()=> showPage(i);
-        thumbs.appendChild(t);
-      });
-    }
-
-    function showPage(idx){
-      if(!currentChapter) return;
-      if(idx<0 || idx>=currentChapter.pages.length) return;
-      currentPage = idx;
-      pageImg.src = currentChapter.pages[idx];
-      pageCounter.textContent = `Seite ${idx+1} / ${currentChapter.pages.length}`;
-      // preload neighbours
-      preloadPage(idx+1); preloadPage(idx-1);
-      // scroll thumb
-      const t = thumbs.children[idx]; if(t) t.scrollIntoView({behavior:'smooth',inline:'center'});
-    }
-
-    function preloadPage(i){ if(!currentChapter) return; if(i<0||i>=currentChapter.pages.length) return; const im=new Image(); im.src=currentChapter.pages[i]; }
-
-    // navigation
-    function nextPage(){ if(!currentChapter) return; if(currentPage < currentChapter.pages.length-1) showPage(currentPage+1); }
-    function prevPage(){ if(!currentChapter) return; if(currentPage > 0) showPage(currentPage-1); }
-    function firstPage(){ showPage(0); }
-    function lastPage(){ if(currentChapter) showPage(currentChapter.pages.length-1); }
-
-    // auto-scroll
-    function startAuto(){
-      stopAuto();
-      autoScroll = true; toggleAutoBtn.textContent = 'Auto-Scroll: An';
-      const speed = parseFloat(autoSpeed.value); // multiplier
-      autoTimer = setInterval(()=>{
-        if(!currentChapter) return; if(currentPage >= currentChapter.pages.length-1){ stopAuto(); return; } nextPage();
-      }, 3000 / speed);
-    }
-    function stopAuto(){ autoScroll=false; toggleAutoBtn.textContent='Auto-Scroll: Aus'; if(autoTimer) clearInterval(autoTimer); autoTimer=null; }
-    toggleAutoBtn.addEventListener('click', ()=>{ if(autoScroll) stopAuto(); else startAuto(); });
-
-    // keyboard
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'ArrowRight' || e.key === 'd') nextPage();
-      if(e.key === 'ArrowLeft' || e.key === 'a') prevPage();
-      if(e.key === ' ') { e.preventDefault(); if(autoScroll) stopAuto(); else startAuto(); }
-      if(e.key === 'f') toggleFullscreen();
+      li.appendChild(img);
+      li.appendChild(a);
+      list.appendChild(li);
     });
+  })
+  .catch(err => {
+    document.getElementById('manga-list').textContent = 'Fehler beim Laden der Manga-Liste.';
+    console.error(err);
+  });
+</script>
 
-    // buttons
-    nextPageBtn.addEventListener('click', nextPage);
-    prevPageBtn.addEventListener('click', prevPage);
-    firstPageBtn.addEventListener('click', firstPage);
-    lastPageBtn.addEventListener('click', lastPage);
-    nextPageNav.addEventListener('click', nextPage);
-    prevPageNav.addEventListener('click', prevPage);
-
-    fullscreenBtn.addEventListener('click', toggleFullscreen);
-    function toggleFullscreen(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
-
-    // search
-    document.getElementById('searchInput').addEventListener('input', (e)=>{
-      const q = e.target.value.trim().toLowerCase(); if(!q){ renderMangaList(mangaJSON); return; }
-      const filtered = mangaJSON.filter(m=>m.title.toLowerCase().includes(q)); renderMangaList(filtered);
-    });
-    document.getElementById('clearSearch').addEventListener('click', ()=>{ document.getElementById('searchInput').value=''; renderMangaList(mangaJSON); });
-
-    // init
-    init();
-  </script>
 </body>
 </html>

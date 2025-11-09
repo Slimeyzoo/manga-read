@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kapitel Liste</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  li {
+    background: #eee;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 6px;
+    transition: background 0.3s;
+  }
+  li:hover {
+    background: #ddd;
+  }
+  a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  .back {
+    display: block;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-size: 1rem;
+  }
+</style>
+</head>
+<body>
+  <a href="index.html" class="back">&larr; Zurück zur Manga-Liste</a>
+  <h1>Kapitel Liste</h1>
+  <ul id="chapter-list">
+    <li>Lade Kapitel...</li>
+  </ul>
+
+<script>
+// Hilfsfunktion, um URL-Parameter auszulesen
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+const mangaTitle = getQueryParam('manga');
+
+if (!mangaTitle) {
+  document.getElementById('chapter-list').textContent = 'Kein Manga ausgewählt.';
+} else {
+  fetch('manga.json')
+    .then(res => {
+      if (!res.ok) throw new Error('Konnte manga.json nicht laden');
+      return res.json();
+    })
+    .then(data => {
+      const manga = data.manga.find(m => m.title === mangaTitle);
+
+      const list = document.getElementById('chapter-list');
+      list.innerHTML = ''; // leeren
+
+      if (!manga) {
+        list.textContent = 'Manga nicht gefunden: ' + mangaTitle;
+        return;
+      }
+
+      document.querySelector('h1').textContent = `Kapitel von "${mangaTitle}"`;
+
+      manga.chapters.forEach(chapter => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+
+        a.href = `reader.html?manga=${encodeURIComponent(mangaTitle)}&chapter=${encodeURIComponent(chapter.title)}`; // Später Link zum Reader des Kapitels
+        a.textContent = chapter.title;
+
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    })
+    .catch(err => {
+      document.getElementById('chapter-list').textContent = 'Fehler beim Laden der Kapitel.';
+      console.error(err);
+    });
+}
+</script>
+
+</body>
+</html>

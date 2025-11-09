@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Manga Reader</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    text-align: center;
+  }
+  h1 {
+    margin-bottom: 1rem;
+  }
+  .reader-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+  button {
+    padding: 0.5rem 1.2rem;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: none;
+    background-color: #2d89ef;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    min-width: 80px;
+  }
+  button:disabled {
+    background-color: #aaa;
+    cursor: default;
+  }
+  button:hover:not(:disabled) {
+    background-color: #1b5fbd;
+  }
+  img.page {
+    max-width: 700px;
+    max-height: 90vh;
+    height: auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    border-radius: 8px;
+  }
+  .back-link {
+    display: block;
+    margin-bottom: 1rem;
+    text-decoration: none;
+    color: #2d89ef;
+  }
+</style>
+</head>
+<body>
+  <a href="kapitel.html?manga=${encodeURIComponent(mangaTitle)}" class="back-link" id="back-link">&larr; Zurück zur Kapitel-Liste</a>
+  <h1 id="title">Lade...</h1>
+
+  <div class="reader-container">
+    <button id="prev-btn">← Zurück</button>
+    <img id="page-image" class="page" src="" alt="Manga Seite" />
+    <button id="next-btn">Weiter →</button>
+  </div>
+
+<script>
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+const mangaTitle = getQueryParam('manga');
+const chapterTitle = getQueryParam('chapter');
+
+const titleEl = document.getElementById('title');
+const pageImage = document.getElementById('page-image');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const backLink = document.getElementById('back-link');
+
+if (!mangaTitle || !chapterTitle) {
+  titleEl.textContent = 'Manga oder Kapitel nicht angegeben.';
+  pageImage.style.display = 'none';
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+} else {
+  backLink.href = `kapitel.html?manga=${encodeURIComponent(mangaTitle)}`;
+
+  fetch('manga.json')
+    .then(res => {
+      if (!res.ok) throw new Error('Konnte manga.json nicht laden');
+      return res.json();
+    })
+    .then(data => {
+      const manga = data.manga.find(m => m.title === mangaTitle);
+      if (!manga) throw new Error('Manga nicht gefunden.');
+
+      const chapter = manga.chapters.find(c => c.title === chapterTitle);
+      if (!chapter) throw new Error('Kapitel nicht gefunden.');
+
+      titleEl.textContent = `${mangaTitle} - ${chapterTitle}`;
+
+      const pages = chapter.pages;
+      if (!pages || pages.length === 0) {
+        titleEl.textContent = 'Keine Seiten für dieses Kapitel vorhanden.';
+        pageImage.style.display = 'none';
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+      }
+
+      let currentPageIndex = 0;
+      pageImage.src = pages[currentPageIndex];
+      pageImage.alt = `${mangaTitle} - ${chapterTitle} Seite ${currentPageIndex + 1}`;
+
+      function updateButtons() {
+        prevBtn.disabled = currentPageIndex === 0;
+        nextBtn.disabled = currentPageIndex === pages.length - 1;
+      }
+      updateButtons();
+
+      prevBtn.onclick = () => {
+        if (currentPageIndex > 0) {
+          currentPageIndex--;
+          pageImage.src = pages[currentPageIndex];
+          pageImage.alt = `${mangaTitle} - ${chapterTitle} Seite ${currentPageIndex + 1}`;
+          updateButtons();
+        }
+      };
+
+      nextBtn.onclick = () => {
+        if (currentPageIndex < pages.length - 1) {
+          currentPageIndex++;
+          pageImage.src = pages[currentPageIndex];
+          pageImage.alt = `${mangaTitle} - ${chapterTitle} Seite ${currentPageIndex + 1}`;
+          updateButtons();
+        }
+      };
+    })
+    .catch(err => {
+      titleEl.textContent = 'Fehler beim Laden der Seiten.';
+      pageImage.style.display = 'none';
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      console.error(err);
+    });
+}
+</script>
+
+</body>
+</html>
