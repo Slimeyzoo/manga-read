@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Manga Liste mit Cover</title>
+<title>Manga Liste</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -48,7 +48,7 @@
 </style>
 </head>
 <body>
-  <h1>Meine Manga Sammlung</h1>
+  <h1>Manga</h1>
   <ul id="manga-list">
     <li>Lade Manga...</li>
   </ul>
@@ -69,7 +69,7 @@ data.manga.forEach(manga => {
   const a = document.createElement('a');
   const img = document.createElement('img');
 
-  a.href = `kapitel.html?manga=${encodeURIComponent(manga.title)}`; // Link zum Kapitel-Reader setzen
+  a.href = `manga.html?manga=${encodeURIComponent(manga.title)}`; // Link zum Kapitel-Reader setzen
   
   img.src = manga.cover || 'placeholder.png'; // Fallback-Bild, falls kein Cover angegeben
   img.alt = manga.title + ' Cover';

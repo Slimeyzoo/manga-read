@@ -50,6 +50,8 @@
     <li>Lade Kapitel...</li>
   </ul>
 
+
+
 <script>
 // Hilfsfunktion, um URL-Parameter auszulesen
 function getQueryParam(param) {
@@ -68,7 +70,11 @@ if (!mangaTitle) {
       return res.json();
     })
     .then(data => {
+      const description = data.manga.find(m => m.title === mangaTitle)?.description || '';
+      const author = data.manga.find(m => m.title === mangaTitle)?.author || '';
       const manga = data.manga.find(m => m.title === mangaTitle);
+      console.log(description);
+      console.log(author);
 
       const list = document.getElementById('chapter-list');
       list.innerHTML = ''; // leeren
@@ -78,7 +84,17 @@ if (!mangaTitle) {
         return;
       }
 
-      document.querySelector('h1').textContent = `Kapitel von ${mangaTitle}`;
+      document.querySelector('h1').textContent = `${mangaTitle}`;
+
+  const descriptionEl = document.createElement('p');
+  // HTML aus der JSON erlauben (z. B. <a>), daher innerHTML statt textContent
+  descriptionEl.innerHTML = description;
+  document.body.insertBefore(descriptionEl, document.getElementById('chapter-list'));
+
+  const authorEl = document.createElement('p');
+  // HTML im Autor-Feld erlauben (vorsichtig bei untrusted input)
+  authorEl.innerHTML = `Autor: ${author}`;
+  document.body.insertBefore(authorEl, document.getElementById('chapter-list'));
 
       manga.chapters.forEach(chapter => {
         const li = document.createElement('li');

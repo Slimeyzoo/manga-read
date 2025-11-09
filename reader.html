@@ -55,7 +55,7 @@
 </style>
 </head>
 <body>
-  <a href="kapitel.html?manga=${encodeURIComponent(mangaTitle)}" class="back-link" id="back-link">&larr; Zurück zur Kapitel-Liste</a>
+  <a href="manga.html?manga=${encodeURIComponent(mangaTitle)}" class="back-link" id="back-link">&larr; Zurück zur Kapitel-Liste</a>
   <h1 id="title">Lade...</h1>
 
   <div class="reader-container">
@@ -85,7 +85,7 @@ if (!mangaTitle || !chapterTitle) {
   prevBtn.disabled = true;
   nextBtn.disabled = true;
 } else {
-  backLink.href = `kapitel.html?manga=${encodeURIComponent(mangaTitle)}`;
+  backLink.href = `manga.html?manga=${encodeURIComponent(mangaTitle)}`;
 
   fetch('manga.json')
     .then(res => {
