@@ -1,14 +1,17 @@
 {
   "manga": [
     {
-      "title": "Mein Manga",
-      "cover": "manga1/cover.jpg",
+      "title": "everything is gone",
+      "cover": "everything_is_gone/ch1/001.jpg",
       "chapters": [
         {
           "title": "Kapitel 1",
           "pages": [
-            "manga1/ch1/001.jpg",
-            "manga1/ch1/002.jpg"
+            "everything_is_gone/ch1/001.jpg",
+            "everything_is_gone/ch1/002.jpg",
+            "everything_is_gone/ch1/003.jpg",
+            "everything_is_gone/ch1/004.jpg",
+            "everything_is_gone/ch1/005.jpg"
           ]
         }
       ]
