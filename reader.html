@@ -20,6 +20,7 @@
     align-items: center;
     justify-content: center;
     gap: 1rem;
+    position: relative;
   }
   button {
     padding: 0.5rem 1.2rem;
@@ -40,11 +41,17 @@
     background-color: #1b5fbd;
   }
   img.page {
-    max-width: 700px;
-    max-height: 90vh;
+    max-width: none; /* WICHTIG für Zoom */
+    max-height: none; /* WICHTIG für Zoom */
+    width: 700px; /* feste Breite für besseres Zoomen */
     height: auto;
     box-shadow: 0 0 10px rgba(0,0,0,0.3);
     border-radius: 8px;
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+  }
+  img.page.zoomed {
+    cursor: zoom-out;
   }
   .back-link {
     display: block;
@@ -52,13 +59,19 @@
     text-decoration: none;
     color: #2d89ef;
   }
+  #fullscreen-btn {
+    position: absolute;
+    top: -2.5rem;
+    right: 0;
+    background-color: #4caf50;
+  }
 </style>
 </head>
 <body>
   <a href="manga.html?manga=${encodeURIComponent(mangaTitle)}" class="back-link" id="back-link">&larr; Zurück zur Kapitel-Liste</a>
   <h1 id="title">Lade...</h1>
 
-  <div class="reader-container">
+  <div class="reader-container" id="reader-container">
     <button id="prev-btn">← Zurück</button>
     <img id="page-image" class="page" src="" alt="Manga Seite" />
     <button id="next-btn">Weiter →</button>
@@ -125,6 +138,7 @@ if (!mangaTitle || !chapterTitle) {
           currentPageIndex--;
           pageImage.src = pages[currentPageIndex];
           pageImage.alt = `${mangaTitle} - ${chapterTitle} Seite ${currentPageIndex + 1}`;
+          resetZoom();
           updateButtons();
         }
       };
@@ -134,6 +148,7 @@ if (!mangaTitle || !chapterTitle) {
           currentPageIndex++;
           pageImage.src = pages[currentPageIndex];
           pageImage.alt = `${mangaTitle} - ${chapterTitle} Seite ${currentPageIndex + 1}`;
+          resetZoom();
           updateButtons();
         }
       };
@@ -146,6 +161,64 @@ if (!mangaTitle || !chapterTitle) {
       console.error(err);
     });
 }
+
+// Zoom & Fullscreen Logik für das Bild
+let scale = 1;
+const scaleStep = 0.1;
+const maxScale = 3;
+const minScale = 1;
+
+function resetZoom() {
+  scale = 1;
+  pageImage.style.transform = `scale(1)`;
+  pageImage.classList.remove('zoomed');
+}
+
+// Klick auf Bild: Fullscreen toggeln
+pageImage.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    pageImage.requestFullscreen().catch(err => {
+      console.error('Fullscreen Fehler:', err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+});
+
+// Zoom nur im Fullscreen mit Mausrad
+pageImage.addEventListener('wheel', (event) => {
+  const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+
+  if (!isFullscreen) {
+    return; // Kein Zoom außerhalb Fullscreen
+  }
+
+  const rect = pageImage.getBoundingClientRect();
+  const x = event.clientX;
+  const y = event.clientY;
+
+  if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+    event.preventDefault();
+
+    const delta = event.deltaY > 0 ? -scaleStep : scaleStep;
+    scale = Math.min(maxScale, Math.max(minScale, scale + delta));
+
+    pageImage.style.transform = `scale(${scale})`;
+
+    if (scale > 1) {
+      pageImage.classList.add('zoomed');
+    } else {
+      pageImage.classList.remove('zoomed');
+    }
+  }
+}, { passive: false });
+
+// Zoom zurücksetzen, wenn Fullscreen beendet wird
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    resetZoom();
+  }
+});
 </script>
 
 </body>
