@@ -78,7 +78,7 @@ if (!mangaTitle) {
         return;
       }
 
-      document.querySelector('h1').textContent = `Kapitel von "${mangaTitle}"`;
+      document.querySelector('h1').textContent = `Kapitel von ${mangaTitle}`;
 
       manga.chapters.forEach(chapter => {
         const li = document.createElement('li');

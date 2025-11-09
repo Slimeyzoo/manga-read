@@ -61,25 +61,26 @@ fetch('manga.json')
     return res.json();
   })
   .then(data => {
-    const list = document.getElementById('manga-list');
-    list.innerHTML = ''; // leeren
+const list = document.getElementById('manga-list');
+list.innerHTML = ''; // leeren
 
-    data.manga.forEach(manga => {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      const img = document.createElement('img');
+data.manga.forEach(manga => {
+  const li = document.createElement('li');
+  const a = document.createElement('a');
+  const img = document.createElement('img');
 
-      a.href = `kapitel.html?manga=${encodeURIComponent(manga.title)}`; // Link zum Kapitel-Reader setzen
-      a.textContent = manga.title;
+  a.href = `kapitel.html?manga=${encodeURIComponent(manga.title)}`; // Link zum Kapitel-Reader setzen
+  
+  img.src = manga.cover || 'placeholder.png'; // Fallback-Bild, falls kein Cover angegeben
+  img.alt = manga.title + ' Cover';
+  img.className = 'cover';
 
-      img.src = manga.cover || 'placeholder.png'; // Fallback-Bild, falls kein Cover angegeben
-      img.alt = manga.title + ' Cover';
-      img.className = 'cover';
+  a.appendChild(img);
+  a.appendChild(document.createTextNode(manga.title)); // Text in das <a> einfügen
+  li.appendChild(a);
+  list.appendChild(li);
+});
 
-      li.appendChild(img);
-      li.appendChild(a);
-      list.appendChild(li);
-    });
   })
   .catch(err => {
     document.getElementById('manga-list').textContent = 'Fehler beim Laden der Manga-Liste.';
